@@ -34,7 +34,6 @@ left join Employee e1 ON exl.id=e1.id and exl.max_month> e1.month
 LEFT JOIN Employee e2 ON e1.id=e2.id and e1.month=e2.month+1
 LEFT JOIN Employee e3 ON e2.id=e3.id and e2.month=e3.month+1
 ORDER BY e1.id,e1.month asc
-*/
 
 
 #601. Human Traffic of Stadium
@@ -64,10 +63,43 @@ OR (S1.id = S2.id+1 AND S1.id= S3.id-1)
 WHERE S1.people>=100 and S2.people>=100 and S3. people>=100
 ORDER BY visit_date ASC
 
+SELECT ID
+        , visit_date
+        , people
+        , LEAD(people, 1) OVER (ORDER BY id) nxt
+        , LEAD(people, 2) OVER (ORDER BY id) nxt2
+        , LAG(people, 1) OVER (ORDER BY id) pre
+        , LAG(people, 2) OVER (ORDER BY id) pre2
+    FROM Stadium
 
 
+#613. Shortest Distance in a Line
+USE test;
+Create Table If Not Exists Point (x int not null);
+Truncate table Point;
+insert into Point (x) values ('-1');
+insert into Point (x) values ('0');
+insert into Point (x) values ('2');
 
+DESC Point
 
+SELECT *
+FROM Point;
+*/
+#615. Average Salary: Departments VS Company
+Create table If Not Exists Salary (id int, employee_id int, amount int, pay_date date)
+Create table If Not Exists Employee (employee_id int, department_id int)
+Truncate table Salary
+insert into Salary (id, employee_id, amount, pay_date) values ('1', '1', '9000', '2017/03/31')
+insert into Salary (id, employee_id, amount, pay_date) values ('2', '2', '6000', '2017/03/31')
+insert into Salary (id, employee_id, amount, pay_date) values ('3', '3', '10000', '2017/03/31')
+insert into Salary (id, employee_id, amount, pay_date) values ('4', '1', '7000', '2017/02/28')
+insert into Salary (id, employee_id, amount, pay_date) values ('5', '2', '6000', '2017/02/28')
+insert into Salary (id, employee_id, amount, pay_date) values ('6', '3', '8000', '2017/02/28')
+Truncate table Employee
+insert into Employee (employee_id, department_id) values ('1', '1')
+insert into Employee (employee_id, department_id) values ('2', '2')
+insert into Employee (employee_id, department_id) values ('3', '2')
 
 
 
