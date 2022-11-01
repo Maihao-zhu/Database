@@ -85,25 +85,56 @@ DESC Point
 
 SELECT *
 FROM Point;
-*/
+
 #615. Average Salary: Departments VS Company
-Create table If Not Exists Salary (id int, employee_id int, amount int, pay_date date)
-Create table If Not Exists Employee (employee_id int, department_id int)
-Truncate table Salary
-insert into Salary (id, employee_id, amount, pay_date) values ('1', '1', '9000', '2017/03/31')
-insert into Salary (id, employee_id, amount, pay_date) values ('2', '2', '6000', '2017/03/31')
-insert into Salary (id, employee_id, amount, pay_date) values ('3', '3', '10000', '2017/03/31')
-insert into Salary (id, employee_id, amount, pay_date) values ('4', '1', '7000', '2017/02/28')
-insert into Salary (id, employee_id, amount, pay_date) values ('5', '2', '6000', '2017/02/28')
-insert into Salary (id, employee_id, amount, pay_date) values ('6', '3', '8000', '2017/02/28')
-Truncate table Employee
-insert into Employee (employee_id, department_id) values ('1', '1')
-insert into Employee (employee_id, department_id) values ('2', '2')
-insert into Employee (employee_id, department_id) values ('3', '2')
+DROP table Salary;
+DROP table Employee;
+Create table If Not Exists Salary (id int, employee_id int, amount int, pay_date date);
+Create table If Not Exists Employee (employee_id int, department_id int);
+Truncate table Salary;
+insert into Salary (id, employee_id, amount, pay_date) values ('1', '1', '9000', '2017/03/31');
+insert into Salary (id, employee_id, amount, pay_date) values ('2', '2', '6000', '2017/03/31');
+insert into Salary (id, employee_id, amount, pay_date) values ('3', '3', '10000', '2017/03/31');
+insert into Salary (id, employee_id, amount, pay_date) values ('4', '1', '7000', '2017/02/28');
+insert into Salary (id, employee_id, amount, pay_date) values ('5', '2', '6000', '2017/02/28');
+insert into Salary (id, employee_id, amount, pay_date) values ('6', '3', '8000', '2017/02/28');
+Truncate table Employee;
+insert into Employee (employee_id, department_id) values ('1', '1');
+insert into Employee (employee_id, department_id) values ('2', '2');
+insert into Employee (employee_id, department_id) values ('3', '2');
 
+select * from salary
+select * from employee
 
+-- pay_month|department_id|comparison level
+#for each month, avg salary across all departments
+WITH COMP AS(
+SELECT avg(s.amount) as avg_comp_salary, month(s.pay_date) AS pay_month 
+FROM salary s
+JOIN employee e 
+ON s.employee_id=e.employee_id
+GROUP BY month(s.pay_date)),
 
+#for each month, avg salary for each departments
+DEP AS (
+SELECT avg(s.amount) as avg_dep_salary,month(s.pay_date) as pay_month, e.department_id as dep_id
+FROM salary s
+JOIN employee e 
+ON s.employee_id=e.employee_id
+GROUP BY month(s.pay_date),dep)
+#comparison
 
+SELECT dep.pay_month,dep.dep_id as department_id,
+CASE 
+WHEN comp.avg_comp_salary=dep.avg_dep_salary THEN "same"
+WHEN comp.avg_comp_salary>dep.avg_dep_salary THEN "lower"
+WHEN comp.avg_comp_salary<dep.avg_dep_salary THEN "higher"
+END AS comparison
+FROM comp
+RIGHT JOIN dep
+ON comp.pay_month=dep.pay_month
+
+*/
 
 
 
