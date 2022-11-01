@@ -134,7 +134,46 @@ FROM comp
 RIGHT JOIN dep
 ON comp.pay_month=dep.pay_month
 
+
+618. Students Report By Geography
+Create table If Not Exists Student (name varchar(50), continent varchar(7));
+Truncate table Student;
+insert into Student (name, continent) values ('Jane', 'America');
+insert into Student (name, continent) values ('Pascal', 'Europe');
+insert into Student (name, continent) values ('Xi', 'Asia');
+insert into Student (name, continent) values ('Jack', 'America');
+
+America|Asia|Europe
+
+SELECT am.America, `as`.Asia,eu.Europe
+FROM
+(SELECT row_number()over(order by name) as as_id,name as Asia
+FROM student 
+WHERE continent="Asia") `as`
+RIGHT JOIN 
+(SELECT row_number()over(order by name) as am_id,name as America
+FROM student 
+WHERE continent="America") am
+ON `as`.as_id=am.am_id
+LEFT JOIN 
+(SELECT row_number()over(order by name) as eu_id,name as Europe
+FROM student 
+WHERE continent="Europe") eu
+ON eu.eu_id=am.am_id
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
