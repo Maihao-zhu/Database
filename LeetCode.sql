@@ -163,8 +163,12 @@ ON eu.eu_id=am.am_id
 */
 
 
-
-
+1070. Product Sales Analysis III
+SELECT distinct product_id, year as first_year, quantity, price
+FROM(
+SELECT product_id, quantity, price, year, rank()over(partition by product_id order by year asc) as year_rank
+FROM Sales) as t
+WHERE year_rank= 1
 
 
 
