@@ -164,16 +164,57 @@ ON eu.eu_id=am.am_id
 
 
 1070. Product Sales Analysis III
+Create table If Not Exists Sales (sale_id int, product_id int, year int, quantity int, price int);
+Create table If Not Exists Product (product_id int, product_name varchar(10));
+Truncate table Sales;
+insert into Sales (sale_id, product_id, year, quantity, price) values ('1', '100', '2008', '10', '5000');
+insert into Sales (sale_id, product_id, year, quantity, price) values ('2', '100', '2009', '12', '5000');
+insert into Sales (sale_id, product_id, year, quantity, price) values ('7', '200', '2011', '15', '9000');
+Truncate table Product;
+insert into Product (product_id, product_name) values ('100', 'Nokia');
+insert into Product (product_id, product_name) values ('200', 'Apple');
+insert into Product (product_id, product_name) values ('300', 'Samsung');
+
 SELECT distinct product_id, year as first_year, quantity, price
 FROM(
 SELECT product_id, quantity, price, year, rank()over(partition by product_id order by year asc) as year_rank
 FROM Sales) as t
 WHERE year_rank= 1
 
+SELECT product_id, year AS first_year, quantity, price
+FROM Sales
+WHERE (product_id, year) IN (
+SELECT product_id, MIN(year) as year
+FROM Sales
+GROUP BY product_id) ;
+
+SELECT product_id, year AS first_year, quantity, price
+FROM sales
+WHERE (product_id, year) in (
+SELECT product_id, MIN(year) as year
+FROM Sales
+GROUP BY product_id)
+
+1082. Sales Analysis I
+Create table If Not Exists Product (product_id int, product_name varchar(10), unit_price int)
+Create table If Not Exists Sales (seller_id int, product_id int, buyer_id int, sale_date date, quantity int, price int)
+Truncate table Product
+insert into Product (product_id, product_name, unit_price) values ('1', 'S8', '1000')
+insert into Product (product_id, product_name, unit_price) values ('2', 'G4', '800')
+insert into Product (product_id, product_name, unit_price) values ('3', 'iPhone', '1400')
+Truncate table Sales
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('1', '1', '1', '2019-01-21', '2', '2000')
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('1', '2', '2', '2019-02-17', '1', '800')
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('2', '2', '3', '2019-06-02', '1', '800')
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('3', '3', '4', '2019-05-13', '2', '2800')
 
 
-
-
+SELECT seller_id
+FROM (
+SELECT seller_id, rank() over (order by sum(price) DESC) as sales_rank
+FROM sales 
+GROUP BY seller_id) t
+WHERE sales_rank = 1
 
 
 
