@@ -160,7 +160,7 @@ LEFT JOIN
 FROM student 
 WHERE continent="Europe") eu
 ON eu.eu_id=am.am_id
-*/
+
 
 
 1070. Product Sales Analysis III
@@ -215,8 +215,58 @@ SELECT seller_id, rank() over (order by sum(price) DESC) as sales_rank
 FROM sales 
 GROUP BY seller_id) t
 WHERE sales_rank = 1
+*/
+1083. Sales Analysis II
+DROP TABLE Product;
+DROP TABLE Sales;
+Create table If Not Exists Product (product_id int, product_name varchar(10), unit_price int);
+Create table If Not Exists Sales (seller_id int, product_id int, buyer_id int, sale_date date, quantity int, price int);
+Truncate table Product;
+insert into Product (product_id, product_name, unit_price) values ('1', 'S8', '1000');
+insert into Product (product_id, product_name, unit_price) values ('2', 'G4', '800');
+insert into Product (product_id, product_name, unit_price) values ('3', 'iPhone', '1400');
+Truncate table Sales;
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('1', '1', '1', '2019-01-21', '2', '2000');
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('1', '2', '2', '2019-02-17', '1', '800');
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('2', '1', '3', '2019-06-02', '1', '800');
+insert into Sales (seller_id, product_id, buyer_id, sale_date, quantity, price) values ('3', '3', '3', '2019-05-13', '2', '2800');
 
+# users who have bought S8
+SELECT t1.buyer_id FROM (
+SELECT buyer_id
+FROM sales sa
+LEFT JOIN product pr
+ON sa.product_id= pr.product_id
+WHERE pr.product_name = 'S8') t1
+WHERE t1.buyer_id not in (
+# users who have bought ip
+SELECT buyer_id
+FROM sales sa
+LEFT JOIN product pr
+ON sa.product_id= pr.product_id
+WHERE pr.product_name = 'iPhone')
 
+SELECT distinct s.product_id,p.product_name
+FROM sales s
+JOIN product p
+ON s.product_id=p.product_id
+WHERE s.sale_date between '2019-01-01' and '2019-03-31' 
+AND s.product_id not in(
+#produts that sold not in  Q1 2019
+SELECT s.product_id
+FROM sales s
+WHERE s.sale_date not between '2019-01-01' and '2019-03-31')
+
+# 1112. Highest Grade For Each Student
+
+-- grade|course|student
+SELECT student_id,course_id,grade 
+FROM (
+SELECT *,
+row_number()over(partition by student_id order by grade DESC,course_id ASC) as rank_grade
+FROM enrollments 
+) as t_rank
+WHERE rank_grade=1
 
 
 
