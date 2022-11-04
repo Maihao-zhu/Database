@@ -215,7 +215,7 @@ SELECT seller_id, rank() over (order by sum(price) DESC) as sales_rank
 FROM sales 
 GROUP BY seller_id) t
 WHERE sales_rank = 1
-*/
+
 1083. Sales Analysis II
 DROP TABLE Product;
 DROP TABLE Sales;
@@ -245,7 +245,7 @@ FROM sales sa
 LEFT JOIN product pr
 ON sa.product_id= pr.product_id
 WHERE pr.product_name = 'iPhone')
-
+# 1084. Sales Analysis III
 SELECT distinct s.product_id,p.product_name
 FROM sales s
 JOIN product p
@@ -268,14 +268,206 @@ FROM enrollments
 ) as t_rank
 WHERE rank_grade=1
 
+-- 1149. Article Views II
+Create table If Not Exists Views 
+(article_id int, 
+author_id int, 
+viewer_id int, 
+view_date date);
+Truncate table Views;
+insert into Views (article_id, author_id, viewer_id, view_date) values ('1', '3', '5', '2019-08-01');
+insert into Views (article_id, author_id, viewer_id, view_date) values ('3', '4', '5', '2019-08-01');
+insert into Views (article_id, author_id, viewer_id, view_date) values ('1', '3', '6', '2019-08-02');
+insert into Views (article_id, author_id, viewer_id, view_date) values ('2', '7', '7', '2019-08-01');
+insert into Views (article_id, author_id, viewer_id, view_date) values ('2', '7', '6', '2019-08-02');
+insert into Views (article_id, author_id, viewer_id, view_date) values ('4', '7', '1', '2019-07-22');
+insert into Views (article_id, author_id, viewer_id, view_date) values ('3', '4', '4', '2019-07-21');
+insert into Views (article_id, author_id, viewer_id, view_date) values ('3', '4', '4', '2019-07-21');
+
+SELECT DISTINCT viewer_id AS id
+FROM Views
+GROUP BY viewer_id,view_date
+HAVING count(DISTINCT article_id)>1
+ORDER BY viewer_id ASC
 
 
+SELECT DISTINCT v1.viewer_id AS id
+FROM views v1
+JOIN views v2
+ON v1.viewer_id = v2.viewer_id
+AND v1.view_date = v2.view_date
+AND v1.article_id != v2.article_id
+ORDER BY 1;
+
+-- 1164. Product Price at a Given Date
+Create table If Not Exists Products (product_id int, new_price int, change_date date);
+Truncate table Products;
+insert into Products (product_id, new_price, change_date) values ('1', '20', '2019-08-14');
+insert into Products (product_id, new_price, change_date) values ('2', '50', '2019-08-14');
+insert into Products (product_id, new_price, change_date) values ('1', '30', '2019-08-15');
+insert into Products (product_id, new_price, change_date) values ('1', '35', '2019-08-16');
+insert into Products (product_id, new_price, change_date) values ('2', '65', '2019-08-17');
+insert into Products (product_id, new_price, change_date) values ('3', '20', '2019-08-18');
 
 
+SELECT product_id, 10 as price 
+FROM Products
+group by product_id
+having min(change_date) > "2019-08-16"
+
+union all
+
+SELECT distinct product_id,new_price as price 
+FROM Products
+where (product_id,change_date)in (
+SELECT product_id, max(change_date)
+    FROM products
+    where change_date<="2019-08-16"
+    group by product_id)
+
+SELECT distinct a.product_id,coalesce(temp.new_price,10) as price 
+FROM products as a
+LEFT JOIN
+(SELECT * 
+FROM products 
+WHERE (product_id, change_date) in (select product_id,max(change_date) from products where change_date<="2019-08-16" group by product_id)) as temp
+on a.product_id = temp.product_id;
+
+-- 1225. Report Contiguous Dates
+Create table If Not Exists Failed (fail_date date);
+Create table If Not Exists Succeeded (success_date date);
+Truncate table Failed;
+insert into Failed (fail_date) values ('2018-12-28');
+insert into Failed (fail_date) values ('2018-12-29');
+insert into Failed (fail_date) values ('2019-01-04');
+insert into Failed (fail_date) values ('2019-01-05');
+Truncate table Succeeded;
+insert into Succeeded (success_date) values ('2018-12-30');
+insert into Succeeded (success_date) values ('2018-12-31');
+insert into Succeeded (success_date) values ('2019-01-01');
+insert into Succeeded (success_date) values ('2019-01-02');
+insert into Succeeded (success_date) values ('2019-01-03');
+insert into Succeeded (success_date) values ('2019-01-06');
+
+with data as(
+SELECT date,period_state as ps,rank()over(order by date) as rk2,period_state,rank()over(order by date)-rk as intv
+from(
+SELECT fail_date as date,'failed' as period_state,RANK()OVER(order by fail_date) as rk
+FROM Failed
+ WHERE fail_date BETWEEN '2019-01-01' AND '2019-12-31'
+UNION ALL 
+SELECT success_date as date, 'success' as period_state,rank()over(order by success_date) as rk
+FROM Succeeded
+ WHERE success_date BETWEEN '2019-01-01' AND '2019-12-31'
+) t
+)
+SELECT d.ps,min(date) as start_date,max(date) as end_date
+FROM data d
+group by d.ps,d.intv
 
 
+SELECT stats AS period_state, MIN(day) AS start_date, MAX(day) AS end_date
+FROM (
+    SELECT 
+        day, 
+        RANK() OVER (ORDER BY day) AS overall_ranking, 
+        stats, 
+        rk, 
+        (RANK() OVER (ORDER BY day) - rk) AS inv
+    FROM (
+        SELECT fail_date AS day, 'failed' AS stats, RANK() OVER (ORDER BY fail_date) AS rk
+        FROM Failed
+        WHERE fail_date BETWEEN '2019-01-01' AND '2019-12-31'
+        UNION 
+        SELECT success_date AS day, 'succeeded' AS stats, RANK() OVER (ORDER BY success_date) AS rk
+        FROM Succeeded
+        WHERE success_date BETWEEN '2019-01-01' AND '2019-12-31') t
+    ) c
+GROUP BY inv, stats
+ORDER BY start_date
+
+-- 1251. Average Selling Price
+Drop table Prices;
+Drop table UnitsSold;
+Create table If Not Exists Prices (product_id int, start_date date, end_date date, price int);
+Create table If Not Exists UnitsSold (product_id int, purchase_date date, units int);
+Truncate table Prices;
+insert into Prices (product_id, start_date, end_date, price) values ('1', '2019-02-17', '2019-02-28', '5');
+insert into Prices (product_id, start_date, end_date, price) values ('1', '2019-03-01', '2019-03-22', '20');
+insert into Prices (product_id, start_date, end_date, price) values ('2', '2019-02-01', '2019-02-20', '15');
+insert into Prices (product_id, start_date, end_date, price) values ('2', '2019-02-21', '2019-03-31', '30');
+Truncate table UnitsSold;
+insert into UnitsSold (product_id, purchase_date, units) values ('1', '2019-02-25', '100');
+insert into UnitsSold (product_id, purchase_date, units) values ('1', '2019-03-01', '15');
+insert into UnitsSold (product_id, purchase_date, units) values ('2', '2019-02-10', '200');
+insert into UnitsSold (product_id, purchase_date, units) values ('2', '2019-03-22', '30');
+
+SELECT *
+FROM Prices p
+JOIN UnitsSold u
+ON p.product_id=u.product_id
+WHERE u.purchase_date Between p.start_date and p.end_date
 
 
+-- 1270. All People Report to the Given Manager
+Create table If Not Exists Employees (employee_id int, employee_name varchar(30), manager_id int);
+Truncate table Employees;
+insert into Employees (employee_id, employee_name, manager_id) values ('1', 'Boss', '1');
+insert into Employees (employee_id, employee_name, manager_id) values ('3', 'Alice', '3');
+insert into Employees (employee_id, employee_name, manager_id) values ('2', 'Bob', '1');
+insert into Employees (employee_id, employee_name, manager_id) values ('4', 'Daniel', '2');
+insert into Employees (employee_id, employee_name, manager_id) values ('7', 'Luis', '4');
+insert into Employees (employee_id, employee_name, manager_id) values ('8', 'John', '3');
+insert into Employees (employee_id, employee_name, manager_id) values ('9', 'Angela', '8');
+insert into Employees (employee_id, employee_name, manager_id) values ('77', 'Robert', '1');
+
+select *
+from employees a
+join employees b
+join employees c
+on a.manager_id=b.employee_id and b.manager_id=c.employee_id
+where c.manager_id=1 and a.employee_id!=1
+
+-- 1285. Find the Start and End Number of Continuous Ranges
+select min(log_id) as start_id,max(log_id) as end_id
+FROM
+(SELECT log_id, row_number()over(order by log_id asc) as rk
+FROM Logs)t
+group by log_id-rk
+-- 1303. Find the Team Size
+SELECT e.employee_id,t.team_size
+FROM employee e
+Left JOIN (
+select team_id,count(*) as team_size
+FROM employee
+group by team_id) t
+ON e.team_id=t.team_id
+*/
+
+-- 1350. Students With Invalid Departments
+Create table If Not Exists Departments (id int, name varchar(30));
+Create table If Not Exists Students (id int, name varchar(30), department_id int);
+Truncate table Departments;
+insert into Departments (id, name) values ('1', 'Electrical Engineering');
+insert into Departments (id, name) values ('7', 'Computer Engineering');
+insert into Departments (id, name) values ('13', 'Bussiness Administration');
+Truncate table Students;
+insert into Students (id, name, department_id) values ('23', 'Alice', '1');
+insert into Students (id, name, department_id) values ('1', 'Bob', '7');
+insert into Students (id, name, department_id) values ('5', 'Jennifer', '13');
+insert into Students (id, name, department_id) values ('2', 'John', '14');
+insert into Students (id, name, department_id) values ('4', 'Jasmine', '77');
+insert into Students (id, name, department_id) values ('3', 'Steve', '74');
+insert into Students (id, name, department_id) values ('6', 'Luis', '1');
+insert into Students (id, name, department_id) values ('8', 'Jonathan', '7');
+insert into Students (id, name, department_id) values ('7', 'Daiana', '33');
+insert into Students (id, name, department_id) values ('11', 'Madelynn', '1');
+
+SELECT s.id,s.name
+FROM students s 
+LEFT JOIN departments d 
+ON s.department_id=d.id 
+WHERE d.id is null
 
 
 
